@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { mockUserProfile } from "@/lib/mock-data";
+import { useAuth } from "@/contexts/auth-context";
 
 const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
@@ -45,7 +46,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const currentTitle = getPageTitle(pathname);
-
+  const { logout } = useAuth();
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
 
   return (
@@ -153,14 +154,15 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
             <Button
               variant="ghost"
-              size="icon"
+              size={"icon-sm"}
               className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               title="Log out"
+              onClick={logout}
               asChild
             >
-              <Link href="/">
-                <LogOut className="h-4 w-4" />
-              </Link>
+              {/* <Link href="/"> */}
+              <LogOut className="h-4 w-4" />
+              {/* </Link> */}
             </Button>
           </div>
         </div>

@@ -7,17 +7,21 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from "react";
 import { Loader2, ShieldAlert, KeyRound, User } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth-context";
+import { format } from "date-fns";
+import { getInitials } from "@/lib/get-initials";
 
 export default function Profile() {
   const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      toast("Credentials Upadted", {
-        description: "New authentication keys generated successfully.",
+      toast.success("Credentials Upadted", {
+        description: "New password updated successfully.",
       });
       (e.target as HTMLFormElement).reset();
     }, 1000);
@@ -38,15 +42,15 @@ export default function Profile() {
             <div className="p-8 flex flex-col items-center text-center relative z-10">
               <Avatar className="h-28 w-28 border-4 border-background shadow-[0_0_20px_rgba(0,0,0,0.5)] mb-6 ring-2 ring-primary/50">
                 <AvatarFallback className="text-3xl font-black font-mono bg-black text-primary">
-                  {initials}
+                  {getInitials(user?.name || "")}
                 </AvatarFallback>
               </Avatar>
               <div className="space-y-1 w-full">
                 <h3 className="font-bold text-xl text-white tracking-tight">
-                  {mockUserProfile.name}
+                  {user?.name}
                 </h3>
                 <p className="text-xs font-mono text-muted-foreground bg-white/5 rounded mx-auto py-1 w-full truncate px-2 border border-white/5">
-                  {mockUserProfile.email}
+                  {user?.email}
                 </p>
               </div>
               <div className="w-full pt-6 mt-6 border-t border-white/10 flex justify-between items-center text-sm">
@@ -54,13 +58,13 @@ export default function Profile() {
                   Access Granted
                 </span>
                 <span className="font-bold font-mono text-white">
-                  {mockUserProfile.joinDate}
+                  {format(new Date(user!.createdAt), "MMM dd, yyyy")}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-card/30 border border-white/10 p-6 backdrop-blur">
+          {/* <div className="rounded-2xl bg-card/30 border border-white/10 p-6 backdrop-blur">
             <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
               <User className="h-4 w-4 text-primary" /> Subscription
             </h4>
@@ -72,7 +76,7 @@ export default function Profile() {
                 Unlimited Semantic Matching
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
 
         {/* Configuration Column */}
@@ -169,7 +173,7 @@ export default function Profile() {
               <Button
                 variant="destructive"
                 className="shrink-0 h-11 px-6 font-bold font-mono tracking-wider bg-red-600 hover:bg-red-700"
-                onClick={() => toast("SYS_ERR: Action locked in demo mode")}
+                onClick={() => toast.error("Not yet done sorry 🥲")}
               >
                 PURGE WORKSPACE
               </Button>
