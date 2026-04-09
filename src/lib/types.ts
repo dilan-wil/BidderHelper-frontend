@@ -21,13 +21,17 @@ export interface Resume {
 // Match types
 export interface Match {
   id: string;
-  userId: string;
-  resumeId: string;
   jobDescription: string;
-  jobTitle: string | null;
-  similarityScore: number;
-  rank: number;
-  createdAt: Date;
+  jobTitle: string;
+  matchedResumes: Array<{
+    resumeId: string;
+    filename: string;
+    fileUrl: string;
+    text: string;
+    similarity: number;
+    rank: number;
+  }>;
+  createdAt: string;
 }
 
 // CoverLetter types

@@ -1,7 +1,8 @@
 "use client";
 
-import { Match, MatchCard } from "./match-card";
+import { MatchCard } from "./match-card";
 import { Card, CardContent } from "@/components/ui/card";
+import { Match } from "@/lib/types";
 import { Inbox } from "lucide-react";
 
 interface MatchCardListProps {

@@ -6,14 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { ScoreBadge } from "@/components/score-badge";
-
-export interface Match {
-  id: string;
-  jobTitle: string;
-  company: string;
-  date: string;
-  score: number;
-}
+import { Match } from "@/lib/types";
 
 interface MatchCardProps {
   match: Match;
@@ -88,14 +81,14 @@ export function MatchCard({
                   className="gap-1 text-xs font-mono font-normal bg-secondary/50 text-muted-foreground"
                 >
                   <Building2 className="h-3 w-3" />
-                  {match.company}
+                  {/* {match.company} */}
                 </Badge>
                 <Badge
                   variant="secondary"
                   className="gap-1 text-xs font-mono font-normal bg-secondary/50 text-muted-foreground"
                 >
                   <CalendarDays className="h-3 w-3" />
-                  {match.date}
+                  {/* {match.date} */}
                 </Badge>
               </div>
             </div>
@@ -104,7 +97,7 @@ export function MatchCard({
           {/* Right section */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex flex-col items-end gap-1">
-              <ScoreBadge score={match.score} />
+              {/* <ScoreBadge score={match.matchedResumes} /> */}
               <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
                 Confidence
               </div>

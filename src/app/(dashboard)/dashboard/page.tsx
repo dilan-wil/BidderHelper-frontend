@@ -148,12 +148,12 @@ export default function Dashboard() {
             Match History
           </h2>
           <div className="space-y-3">
-            <MatchCardList
+            {/* <MatchCardList
               matches={mockMatchResults}
               isLoading={false}
               href="/dashboard/match"
               onCardClick={(match) => console.log(match)}
-            />
+            /> */}
           </div>
         </div>
 

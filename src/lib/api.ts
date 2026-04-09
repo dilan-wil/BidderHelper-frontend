@@ -1,4 +1,4 @@
-import { User, Resume } from "./types";
+import { User, Resume, Match } from "./types";
 import { useAppStore } from "./store";
 
 // Base URL from environment variable
@@ -137,10 +137,7 @@ export const resumeApi = {
 // ============= Recommendations API =============
 export const recommendationApi = {
   matchWithText: async (text: string) => {
-    return request<{
-      jobDescription: string;
-      matches: Array<{ id: string; filename: string; similarity: number }>;
-    }>("/recommendations/match", {
+    return request<Match>("/recommendations/match", {
       method: "POST",
       body: JSON.stringify({ text }),
     });
@@ -149,30 +146,15 @@ export const recommendationApi = {
   matchWithFile: async (file: File) => {
     const formData = new FormData();
     formData.append("file", file);
-    return uploadRequest<{
-      jobDescription: string;
-      matches: Array<{ id: string; filename: string; similarity: number }>;
-    }>("/recommendations/match", formData);
+    return uploadRequest<Match>("/recommendations/match", formData);
   },
 
   getHistory: async () => {
-    return request<
-      Array<{
-        id: string;
-        jobDescription: string;
-        createdAt: string;
-        matches: Array<{ id: string; filename: string; similarity: number }>;
-      }>
-    >("/recommendations/history");
+    return request<Array<Match>>("/recommendations/history");
   },
 
   getMatchById: async (id: string) => {
-    return request<{
-      id: string;
-      jobDescription: string;
-      createdAt: string;
-      matches: Array<{ id: string; filename: string; similarity: number }>;
-    }>(`/recommendations/match/${id}`);
+    return request<Match>(`/recommendations/${id}`); // Note: no /match/ prefix
   },
 };
 

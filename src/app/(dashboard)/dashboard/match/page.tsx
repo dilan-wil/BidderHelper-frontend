@@ -2,24 +2,69 @@
 
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Target, Loader2, Cpu, Clock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { MatchCardList } from "@/components/dashboard/match/match-card-list";
-import { mockMatchResults } from "@/lib/mock-data";
+import { recommendationApi } from "@/lib/api";
+import { useAppStore } from "@/lib/store";
+import { toast } from "sonner";
+import { Match } from "@/lib/types";
 
 export default function MatchJob() {
+  const { matches, setMatches } = useAppStore();
   const [jobDescription, setJobDescription] = useState("");
   const [isMatching, setIsMatching] = useState(false);
+  const [history, setHistory] = useState<Match[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
   const router = useRouter();
 
-  const handleMatch = () => {
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  const loadHistory = async () => {
+    try {
+      const data = await recommendationApi.getHistory();
+      setHistory(data.data || []);
+    } catch (error) {
+      console.error("Failed to load history:", error);
+      toast.error("Error", {
+        description: "Failed to load match history",
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleMatch = async () => {
     if (!jobDescription.trim()) return;
 
     setIsMatching(true);
-    setTimeout(() => {
-      router.push("/dashboard/match/result");
-    }, 2000);
+    try {
+      const result = await recommendationApi.matchWithText(jobDescription);
+      console.log(result)
+      // Navigate to results page with the match ID
+      // router.push(`/dashboard/match/result/${result.data?.id}`);
+
+      toast.success("Success", {
+        description: "Match analysis complete!",
+      });
+    } catch (error) {
+      console.error("Match failed:", error);
+      toast.error("Match Failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to analyze job description",
+      });
+    } finally {
+      setIsMatching(false);
+    }
+  };
+
+  const handleCardClick = (match: Match) => {
+    router.push(`/dashboard/match/${match.id}`);
   };
 
   return (
@@ -90,10 +135,10 @@ export default function MatchJob() {
 
         <div className="space-y-3">
           <MatchCardList
-            matches={mockMatchResults}
-            isLoading={false}
+            matches={history}
+            isLoading={isLoadingHistory}
             href="/dashboard/match"
-            onCardClick={(match) => console.log(match)}
+            onCardClick={handleCardClick}
           />
         </div>
       </div>
