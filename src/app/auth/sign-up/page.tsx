@@ -5,16 +5,36 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function Signup() {
   const [isLoading, setIsLoading] = useState(false);
+  const { signup } = useAuth();
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const result = await signup(name, email, password);
+
+      if (result.success) {
+        router.push("/dashboard");
+      } else {
+        setError(result.error || "Signup failed");
+      }
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -69,6 +89,7 @@ export default function Signup() {
                     id="name"
                     placeholder="Alex Developer"
                     required
+                    onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     className="h-12 bg-background border-white/10 focus-visible:border-primary/50 focus-visible:ring-primary/20 transition-all font-sans text-sm"
                   />
@@ -85,6 +106,7 @@ export default function Signup() {
                     type="email"
                     placeholder="name@example.com"
                     required
+                    onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
                     className="h-12 bg-background border-white/10 focus-visible:border-primary/50 focus-visible:ring-primary/20 transition-all font-mono text-sm"
                   />
@@ -100,6 +122,7 @@ export default function Signup() {
                     id="password"
                     type="password"
                     required
+                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     className="h-12 bg-background border-white/10 focus-visible:border-primary/50 focus-visible:ring-primary/20 transition-all font-mono text-sm tracking-widest"
                   />

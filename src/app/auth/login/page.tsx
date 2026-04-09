@@ -5,16 +5,35 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+  const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const result = await login(email, password);
+
+      if (result.success) {
+        router.push("/dashboard");
+      } else {
+        setError(result.error || "Signup failed");
+      }
+    } catch (error: any) {
+      setError(error.message);
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -71,6 +90,7 @@ export default function Login() {
                     placeholder="name@example.com"
                     required
                     disabled={isLoading}
+                    onChange={(e) => setEmail(e.target.value)}
                     className="h-12 bg-background border-white/10 focus-visible:border-primary/50 focus-visible:ring-primary/20 transition-all font-mono text-sm"
                   />
                 </div>
@@ -93,6 +113,7 @@ export default function Login() {
                     id="password"
                     type="password"
                     required
+                    onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
                     className="h-12 bg-background border-white/10 focus-visible:border-primary/50 focus-visible:ring-primary/20 transition-all font-mono text-sm tracking-widest"
                   />

@@ -26,7 +26,7 @@ export const useAppStore = create<AppState>()(
       token: null,
       isAuthenticated: false,
       resumes: [],
-      isLoading: false,
+      isLoading: true,
 
       setUser: (user) => set({ user }),
       setToken: (token) => set({ token }),

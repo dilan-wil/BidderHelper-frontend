@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, ReactNode } from "react";
+import { createContext, useContext, ReactNode, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppStore } from "@/lib/store";
 import { User } from "@/lib/types";
@@ -38,6 +38,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
   } = useAppStore();
 
+  // Initialize auth from stored token
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/users/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+          setToken(token);
+          setAuthenticated(true);
+        } else {
+          localStorage.removeItem("token");
+          clearAuth();
+        }
+      } catch (error) {
+        localStorage.removeItem("token");
+        clearAuth();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
   const login = async (email: string, password: string) => {
     setLoading(true);
 
@@ -55,9 +92,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(data.user);
-      setToken(data.token);
+      setToken(data.access_token);
       setAuthenticated(true);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.access_token);
 
       return { success: true };
     } catch (error) {
@@ -84,9 +121,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(data.user);
-      setToken(data.token);
+      setToken(data.access_token);
       setAuthenticated(true);
-      localStorage.setItem("token", data.token);
+      localStorage.setItem("token", data.access_token);
 
       return { success: true };
     } catch (error) {
