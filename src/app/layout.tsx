@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const inter = Inter({
   variable: "--font-intery",
@@ -30,7 +31,7 @@ export default function RootLayout({
       className={`${inter.variable} ${jetBrainsMono.variable} h-full dark antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster richColors toastOptions={{}} />
       </body>
     </html>
