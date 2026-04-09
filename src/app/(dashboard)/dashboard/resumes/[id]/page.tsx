@@ -12,12 +12,27 @@ import {
   Calendar,
   HardDrive,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { Resume } from "@/lib/types";
+import { resumeApi } from "@/lib/api";
+import { format } from "date-fns";
+import { formatFileSize } from "@/lib/format-file-size";
 
 export default function ResumeDetail() {
   const params = useParams();
-  const resume = mockResumes.find((r) => r.id === params.id);
+  const resumeId = params.id as string;
+  const [resume, setResume] = useState<Resume | null>(null);
+
+  useEffect(() => {
+    const getResume = async () => {
+      const { data, error } = await resumeApi.getById(resumeId);
+      if (data && !error) {
+        setResume(data);
+      }
+    };
+    getResume();
+  }, []);
 
   if (!resume) {
     return (
@@ -72,13 +87,16 @@ export default function ResumeDetail() {
               </CardTitle>
               <div className="flex flex-wrap gap-4 mt-2 text-sm text-muted-foreground">
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" /> {resume.uploadDate}
+                  <Calendar className="h-4 w-4" />{" "}
+                  {format(new Date(resume.createdAt), "MMM dd, yyyy")}
                 </span>
                 <span className="flex items-center gap-1">
-                  <HardDrive className="h-4 w-4" /> {resume.size}
+                  <HardDrive className="h-4 w-4" />{" "}
+                  {formatFileSize(resume.fileSize)}
                 </span>
                 <span className="flex items-center gap-1">
-                  <Target className="h-4 w-4" /> {resume.matchCount} Matches
+                  {/* <Target className="h-4 w-4" /> {resume.matchCount} Matches */}
+                  <Target className="h-4 w-4" /> {resume.fileType}
                 </span>
               </div>
             </div>
@@ -87,7 +105,7 @@ export default function ResumeDetail() {
         <CardContent className="space-y-8">
           <div>
             <h3 className="font-semibold text-lg mb-3">Extracted Skills</h3>
-            <div className="flex flex-wrap gap-2">
+            {/* <div className="flex flex-wrap gap-2">
               {resume.skills.map((skill, i) => (
                 <Badge
                   key={i}
@@ -97,7 +115,7 @@ export default function ResumeDetail() {
                   {skill}
                 </Badge>
               ))}
-            </div>
+            </div> */}
           </div>
 
           <div>
@@ -105,7 +123,7 @@ export default function ResumeDetail() {
               Parsed Content Preview
             </h3>
             <div className="p-6 rounded-lg bg-muted/50 border text-sm leading-relaxed font-mono whitespace-pre-wrap text-muted-foreground">
-              {resume.content}
+              {resume.text}
               {"\n\n[Remaining content truncated for preview]"}
             </div>
           </div>

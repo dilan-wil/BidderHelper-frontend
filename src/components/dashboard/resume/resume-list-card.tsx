@@ -3,13 +3,8 @@
 import Link from "next/link";
 import { FileText, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-interface Resume {
-  id: string;
-  filename: string;
-  size: string;
-  skills: string[];
-}
+import { Resume } from "@/lib/types";
+import { formatFileSize } from "@/lib/format-file-size";
 
 interface ResumeCardProps {
   resume: Resume;
@@ -27,7 +22,8 @@ export function ResumeListCard({ resume }: ResumeCardProps) {
             {resume.filename}
           </span>
           <span className="text-[10px] font-mono text-muted-foreground">
-            {resume.size} • {resume.skills.length} skills indexed
+            {/* {resume.size} • {resume.skills.length} skills indexed */}
+            {formatFileSize(resume.fileSize)} • {resume.fileType}
           </span>
         </div>
       </div>

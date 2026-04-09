@@ -12,7 +12,8 @@ export interface Resume {
   filename: string;
   fileUrl: string;
   text: string;
-  embedding: string;
+  fileSize: any;
+  fileType: string;
   userId: string;
   createdAt: Date;
 }

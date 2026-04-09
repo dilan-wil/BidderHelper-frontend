@@ -12,10 +12,49 @@ import { mockMatchResults, mockResumes } from "@/lib/mock-data";
 import { toast } from "sonner";
 import Link from "next/link";
 import { MatchCardList } from "../../../components/dashboard/match/match-card-list";
-import { ResumeListCard } from "@/components/dashboard/match/resume-list-card";
+import { ResumeListCard } from "@/components/dashboard/resume/resume-list-card";
 import { MetricCard } from "@/components/dashboard/metric-card";
+import { useEffect, useState } from "react";
+import { resumeApi } from "@/lib/api";
+import { useAppStore } from "@/lib/store";
 
 export default function Dashboard() {
+  const [resumesLoading, setResumesLoading] = useState(false);
+  const { resumes, setResumes } = useAppStore();
+
+  const fetchResumes = async () => {
+    setResumesLoading(true);
+    const { data, error } = await resumeApi.getAll();
+    if (data && !error) {
+      console.log(data);
+      setResumes(data);
+    }
+    setResumesLoading(false);
+  };
+
+  // Get resumes if not already set in store
+  useEffect(() => {
+    if (resumes.length === 0) {
+      fetchResumes();
+    }
+  }, []);
+
+  // Get matches
+  useEffect(() => {
+    const fetchMatches = async () => {
+      // if (matches.length === 0) {
+      //   setLoading(true);
+      //   const { data, error } = await recommendationApi.getHistory();
+      //   if (data && !error) {
+      //     setMatches(data);
+      //   }
+      //   setLoading(false);
+      // }
+    };
+
+    fetchMatches();
+  }, []);
+
   const handleUploadComplete = () => {
     toast.success("Upload Successful", {
       description: "Resumes ingested and processed.",
@@ -34,13 +73,16 @@ export default function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <FileText className="h-3.5 w-3.5" />
-            <span>12 resumes</span>
+            <span>{resumes.length} resumes</span>
           </div>
         </div>
 
         {/* Right side - Buttons */}
         <div className="flex flex-col sm:flex-row sm:justify-end gap-3">
-          <UploadModal onUploadComplete={handleUploadComplete}>
+          <UploadModal
+            onDone={fetchResumes}
+            onUploadComplete={handleUploadComplete}
+          >
             <Button
               variant="outline"
               className="w-full sm:w-auto h-10 border-primary/20 hover:border-primary/50 hover:bg-primary/5"
@@ -65,7 +107,7 @@ export default function Dashboard() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Library Size"
-          value={mockResumes.length}
+          value={resumes.length}
           icon={<FileText className="h-4 w-4" />}
           variant="primary"
         />
@@ -120,7 +162,7 @@ export default function Dashboard() {
             Asset Library
           </h2>
           <div className="space-y-3">
-            {mockResumes.slice(0, 4).map((resume) => (
+            {resumes.slice(0, 4).map((resume) => (
               <ResumeListCard key={resume.id} resume={resume} />
             ))}
           </div>

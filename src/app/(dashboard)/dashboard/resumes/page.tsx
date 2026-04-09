@@ -1,30 +1,36 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { UploadModal } from "@/components/upload-modal";
-import {
-  FileText,
-  MoreVertical,
-  Trash2,
-  ExternalLink,
-  Zap,
-} from "lucide-react";
-import { mockResumes } from "@/lib/mock-data";
-import Link from "next/link";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useState } from "react";
+import { FileText } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ResumeCard } from "@/components/dashboard/resume/resume-card";
+import { resumeApi } from "@/lib/api";
+import { useAppStore } from "@/lib/store";
 
 export default function Resumes() {
-  const [resumes, setResumes] = useState(mockResumes);
+  const [resumesLoading, setResumesLoading] = useState(false);
+  const { resumes, setResumes } = useAppStore();
 
-  const handleDelete = (id: string) => {
-    setResumes(resumes.filter((r) => r.id !== id));
+  const fetchResumes = async () => {
+    setResumesLoading(true);
+    const { data, error } = await resumeApi.getAll();
+    if (data && !error) {
+      setResumes(data);
+    }
+    setResumesLoading(false);
+  };
+
+  // Get resumes if not already set in store
+  useEffect(() => {
+    if (resumes.length === 0) {
+      fetchResumes();
+    }
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    await resumeApi.delete(id);
+    await fetchResumes();
     toast.success("Asset Removed", {
       description: "Resume purged from library.",
     });
@@ -69,11 +75,11 @@ export default function Resumes() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {resumes.map((resume) => (
-            <ResumeCard 
-            key={resume.id} 
-            resume={resume} 
-            onDelete={handleDelete}
-          />
+            <ResumeCard
+              key={resume.id}
+              resume={resume}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       )}

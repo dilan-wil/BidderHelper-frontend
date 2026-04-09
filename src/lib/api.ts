@@ -1,4 +1,5 @@
-import { User } from "./types";
+import { User, Resume } from "./types";
+import { useAppStore } from "./store";
 
 // Base URL from environment variable
 const API_BASE_URL =
@@ -11,7 +12,7 @@ async function request<T>(
 ): Promise<{ data: T | null; error: string | null }> {
   try {
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
@@ -44,7 +45,7 @@ async function uploadRequest<T>(
 ): Promise<{ data: T | null; error: string | null }> {
   try {
     const token =
-      typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
+      typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
@@ -72,27 +73,15 @@ async function uploadRequest<T>(
 // ============= Users API =============
 export const userApi = {
   getMe: async () => {
-    return request<{
-      id: string;
-      name: string;
-      email: string;
-      createdAt: string;
-    }>("/users/me");
+    return request<User>("/users/me");
   },
 
   getAll: async () => {
-    return request<
-      Array<{ id: string; name: string; email: string; createdAt: string }>
-    >("/users");
+    return request<Array<User>>("/users");
   },
 
   getById: async (id: string) => {
-    return request<{
-      id: string;
-      name: string;
-      email: string;
-      createdAt: string;
-    }>(`/users/${id}`);
+    return request<User>(`/users/${id}`);
   },
 
   update: async (
@@ -131,27 +120,15 @@ export const resumeApi = {
   },
 
   getAll: async () => {
-    return request<
-      Array<{
-        id: string;
-        filename: string;
-        fileUrl: string;
-        createdAt: string;
-      }>
-    >("/resumes");
+    return request<Array<Resume>>("/resumes");
   },
 
   getById: async (id: string) => {
-    return request<{
-      id: string;
-      filename: string;
-      fileUrl: string;
-      createdAt: string;
-    }>(`/resumes/${id}`);
+    return request<Resume>(`/resumes/${id}`);
   },
 
   delete: async (id: string) => {
-    return request<{ message: string }>(`/resumes/${id}`, {
+    return request<{ message: string; id?: string }>(`/resumes/${id}`, {
       method: "DELETE",
     });
   },

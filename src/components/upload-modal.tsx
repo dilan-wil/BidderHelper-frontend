@@ -11,20 +11,29 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
+import { resumeApi } from "@/lib/api"; // Import your API
+import { useAppStore } from "@/lib/store";
 
 interface UploadModalProps {
   children?: React.ReactNode;
   onUploadComplete?: () => void;
+  onDone?: () => void;
 }
 
-export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
+export function UploadModal({
+  children,
+  onUploadComplete,
+  onDone,
+}: UploadModalProps) {
   const [open, setOpen] = useState(false);
+  const { setResumes } = useAppStore();
   const [isDragging, setIsDragging] = useState(false);
   const [files, setFiles] = useState<
     {
       file: File;
       progress: number;
       status: "uploading" | "completed" | "error";
+      error?: string;
     }[]
   >([]);
 
@@ -38,29 +47,47 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
     setIsDragging(false);
   }, []);
 
-  const simulateUpload = (fileObj: { file: File }) => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.random() * 30;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-        setFiles((prev) =>
-          prev.map((f) =>
-            f.file === fileObj.file
-              ? { ...f, progress: 100, status: "completed" }
-              : f
-          )
-        );
-        setTimeout(() => {
-          onUploadComplete?.();
-        }, 1000);
-      } else {
-        setFiles((prev) =>
-          prev.map((f) => (f.file === fileObj.file ? { ...f, progress } : f))
-        );
+  const uploadFile = async (fileObj: { file: File }) => {
+    try {
+      // Update progress to 10% (started)
+      setFiles((prev) =>
+        prev.map((f) => (f.file === fileObj.file ? { ...f, progress: 10 } : f))
+      );
+
+      // Call the actual API
+      const { data, error } = await resumeApi.upload([fileObj.file]);
+
+      if (error) {
+        throw new Error(error);
       }
-    }, 500);
+
+      // Update to 100% on success
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.file === fileObj.file
+            ? { ...f, progress: 100, status: "completed" }
+            : f
+        )
+      );
+
+      // Notify parent component
+      setTimeout(() => {
+        onUploadComplete?.();
+      }, 500);
+    } catch (error) {
+      // Handle error
+      setFiles((prev) =>
+        prev.map((f) =>
+          f.file === fileObj.file
+            ? {
+                ...f,
+                status: "error",
+                error: error instanceof Error ? error.message : "Upload failed",
+              }
+            : f
+        )
+      );
+    }
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -75,7 +102,7 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
       }));
 
       setFiles((prev) => [...prev, ...newFiles]);
-      newFiles.forEach(simulateUpload);
+      newFiles.forEach(uploadFile); // Call actual upload
     }
   }, []);
 
@@ -88,7 +115,7 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
       }));
 
       setFiles((prev) => [...prev, ...newFiles]);
-      newFiles.forEach(simulateUpload);
+      newFiles.forEach(uploadFile); // Call actual upload
     }
   };
 
@@ -169,6 +196,10 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
                     </div>
                     {fileObj.status === "completed" ? (
                       <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
+                    ) : fileObj.status === "error" ? (
+                      <span className="text-xs text-red-400 shrink-0">
+                        Failed
+                      </span>
                     ) : (
                       <Button
                         variant="ghost"
@@ -189,6 +220,11 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
                       </div>
                     </div>
                   )}
+                  {fileObj.status === "error" && fileObj.error && (
+                    <div className="text-[10px] text-red-400 mt-1">
+                      {fileObj.error}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -197,14 +233,22 @@ export function UploadModal({ children, onUploadComplete }: UploadModalProps) {
 
         <div className="flex justify-end mt-4">
           <Button
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              setOpen(false);
+              if (
+                files.length > 0 &&
+                files.find((f) => f.status === "completed" && onDone)
+              ) {
+                onDone?.();
+              }
+            }}
             variant={
               files.length > 0 && files.every((f) => f.status === "completed")
                 ? "default"
                 : "outline"
             }
           >
-            {files.length > 0 && files.every((f) => f.status === "completed")
+            {files.length > 0 && files.find((f) => f.status === "completed")
               ? "Done"
               : "Cancel"}
           </Button>

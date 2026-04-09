@@ -15,14 +15,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-export interface Resume {
-  id: string;
-  filename: string;
-  size: string;
-  uploadDate: string;
-  matchCount: number;
-}
+import { Resume } from "@/lib/types";
+import { formatFileSize } from "@/lib/format-file-size";
 
 interface ResumeCardProps {
   resume: Resume;
@@ -82,10 +76,10 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
           </h3>
           <div className="flex items-center gap-2 mt-3">
             <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              {resume.size}
+              {formatFileSize(resume.fileSize)}
             </span>
             <span className="px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              {resume.uploadDate}
+              {resume.fileType}
             </span>
           </div>
         </div>
@@ -95,7 +89,7 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
         <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
           <Zap className="h-3.5 w-3.5 text-primary" /> Matches
         </div>
-        <div
+        {/* <div
           className={`text-xs font-bold font-mono px-2 py-1 rounded border ${
             resume.matchCount > 0
               ? "bg-primary/10 border-primary/30 text-primary shadow-[0_0_10px_rgba(0,217,255,0.2)]"
@@ -103,7 +97,7 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
           }`}
         >
           {resume.matchCount}
-        </div>
+        </div> */}
       </div>
     </div>
   );
