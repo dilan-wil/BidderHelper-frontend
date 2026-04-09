@@ -92,7 +92,7 @@ export const mockMatchResults: MatchResult[] = [
     company: "Vercel",
     date: "2024-03-10",
     bestResumeId: "res_2",
-    score: 94,
+    score: 30,
     matches: [
       { resumeId: "res_2", score: 30 },
       { resumeId: "res_1", score: 82 },

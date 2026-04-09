@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Target, Building2, CalendarDays, ChevronRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -124,15 +123,6 @@ export function MatchCard({
   );
 
   return (
-    <div>
-      {/* <motion.div
-       key={match.id}
-       initial={{ opacity: 0, y: 12 }}
-       animate={{ opacity: 1, y: 0 }}
-       transition={{ delay: index * delay, duration: 0.3 }}
-     > */}
-      {href ? <Link href={href}>{cardContent}</Link> : cardContent}
-      {/* </motion.div> */}
-    </div>
+    <div>{href ? <Link href={href}>{cardContent}</Link> : cardContent}</div>
   );
 }

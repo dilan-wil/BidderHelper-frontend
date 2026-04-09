@@ -21,7 +21,7 @@ const sidebarItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/dashboard" },
   { icon: Files, label: "Resumes", href: "/dashboard/resumes" },
   { icon: Target, label: "Match Job", href: "/dashboard/match" },
-  { icon: FileText, label: "Cover Letters", href: "/dashboard/cover/cov_1" },
+  // { icon: FileText, label: "Cover Letters", href: "/dashboard/cover/cov_1" },
   { icon: User, label: "Profile", href: "/dashboard/profile" },
 ];
 
