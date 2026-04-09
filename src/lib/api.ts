@@ -1,4 +1,4 @@
-import { User, Resume, Match } from "./types";
+import { User, Resume, Match, CoverLetter } from "./types";
 import { useAppStore } from "./store";
 
 // Base URL from environment variable
@@ -165,52 +165,39 @@ export const coverLetterApi = {
     jobDescription: string,
     matchId?: string
   ) => {
-    return request<{
-      id: string;
-      coverLetter: string;
-      resume: { id: string; filename: string };
-      createdAt: string;
-    }>("/cover-letter/generate", {
+    return request<CoverLetter>("/covers/generate", {
       method: "POST",
       body: JSON.stringify({ resumeId, jobDescription, matchId }),
     });
   },
 
   getHistory: async () => {
-    return request<
-      Array<{
-        id: string;
-        content: string;
-        resumeId: string;
-        createdAt: string;
-      }>
-    >("/cover-letter/history");
+    return request<Array<CoverLetter>>("/covers", {
+      method: "GET",
+    });
   },
 
   getById: async (id: string) => {
-    return request<{
-      id: string;
-      content: string;
-      resumeId: string;
-      createdAt: string;
-      resume?: { id: string; filename: string };
-    }>(`/cover-letter/${id}`);
+    return request<CoverLetter>(`/covers/${id}`, {
+      method: "GET",
+    });
   },
 
   delete: async (id: string) => {
-    return request<{ message: string }>(`/cover-letter/${id}`, {
+    return request<{ message: string }>(`/covers/${id}`, {
       method: "DELETE",
     });
   },
 
   regenerate: async (id: string) => {
-    return request<{
-      id: string;
-      coverLetter: string;
-      resume: { id: string; filename: string };
-      createdAt: string;
-    }>(`/cover-letter/${id}/regenerate`, {
+    return request<CoverLetter>(`/covers/${id}/regenerate`, {
       method: "POST",
+    });
+  },
+
+  getByMatch: async (matchId: string) => {
+    return request<Array<CoverLetter>>(`/covers/match/${matchId}`, {
+      method: "GET",
     });
   },
 };

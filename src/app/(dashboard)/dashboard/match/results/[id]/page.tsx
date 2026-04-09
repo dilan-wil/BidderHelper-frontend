@@ -18,51 +18,108 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
 import { Match } from "@/lib/types";
-import { recommendationApi } from "@/lib/api";
+import { recommendationApi, coverLetterApi } from "@/lib/api";
 
 export default function MatchResult() {
   const params = useParams();
   const matchId = params.id as string;
   const [match, setMatch] = useState<Match | null>(null);
+  const [generatingLetter, setGeneratingLetter] = useState(false);
+  const [showLetter, setShowLetter] = useState(false);
+  const [letterContent, setLetterContent] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [generatedCoverId, setGeneratedCoverId] = useState<string | null>(null);
 
   useEffect(() => {
-    const getResume = async () => {
+    const getMatch = async () => {
       const { data, error } = await recommendationApi.getMatchById(matchId);
       if (data && !error) {
         setMatch(data);
       }
     };
-    getResume();
-  }, []);
+    getMatch();
+  }, [matchId]);
+
   const bestResume = match?.matchedResumes[0];
 
-  const [generatingLetter, setGeneratingLetter] = useState(false);
-  const [showLetter, setShowLetter] = useState(false);
-  const [letterContent, setLetterContent] = useState(
-    "Dear Hiring Manager,\n\nI am writing to express my strong interest in the open position. Based on the requirements, my background aligns perfectly...\n\nSincerely,\nAlex"
-  );
-  const [copied, setCopied] = useState(false);
+  const handleGenerateLetter = async () => {
+    if (!bestResume) return;
 
-  if (!bestResume) return null;
-
-  const handleGenerateLetter = () => {
     setGeneratingLetter(true);
-    setTimeout(() => {
-      setGeneratingLetter(false);
+
+    try {
+      const result = await coverLetterApi.generate(
+        bestResume.resumeId,
+        match.jobDescription,
+        matchId
+      );
+
+      setLetterContent(result.data?.content!);
+      setGeneratedCoverId(result.data!.id);
       setShowLetter(true);
-    }, 1500);
+
+      toast.success("Cover letter generated successfully!");
+    } catch (error) {
+      console.error("Failed to generate cover letter:", error);
+      toast.error("Failed to generate cover letter");
+    } finally {
+      setGeneratingLetter(false);
+    }
   };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(letterContent);
     setCopied(true);
-    toast("Copied to clipboard");
+    toast.success("Copied to clipboard");
     setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownload = () => {
-    toast("Copied to clipboard");
+    if (!letterContent) return;
+
+    const blob = new Blob([letterContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `cover_letter_${bestResume?.filename.replace(
+      /\.[^/.]+$/,
+      ""
+    )}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Downloaded successfully!");
   };
+
+  const handleRegenerate = async () => {
+    if (!generatedCoverId) {
+      // If no existing cover letter, generate new one
+      await handleGenerateLetter();
+      return;
+    }
+
+    setGeneratingLetter(true);
+
+    try {
+      const result = await coverLetterApi.regenerate(generatedCoverId);
+      setLetterContent(result.data!.content);
+      toast.success("Cover letter regenerated!");
+    } catch (error) {
+      console.error("Failed to regenerate:", error);
+      toast.error("Failed to regenerate cover letter");
+    } finally {
+      setGeneratingLetter(false);
+    }
+  };
+
+  if (!bestResume) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -75,7 +132,7 @@ export default function MatchResult() {
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">
-            {match.jobTitle}
+            {match?.jobTitle || "Match Result"}
           </h2>
           <p className="text-primary font-mono text-sm bg-primary/10 w-fit px-2 py-0.5 rounded border border-primary/20">
             {/* {result.company} */}
@@ -196,7 +253,7 @@ export default function MatchResult() {
             Variant Ranking
           </h3>
           <div className="space-y-3 flex-1">
-            {match.matchedResumes.slice(1).map((m, i) => {
+            {match?.matchedResumes.slice(1).map((m, i) => {
               return (
                 <div
                   key={i}

@@ -41,7 +41,7 @@ export interface CoverLetter {
   resumeId: string;
   jobDescription: string;
   content: string;
-  generatedFromMatchId: string | null;
+  matchId: string | null;
   createdAt: Date;
 }
 
