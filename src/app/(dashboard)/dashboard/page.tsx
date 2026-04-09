@@ -15,21 +15,37 @@ import { MatchCardList } from "../../../components/dashboard/match/match-card-li
 import { ResumeListCard } from "@/components/dashboard/resume/resume-list-card";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { useEffect, useState } from "react";
-import { resumeApi } from "@/lib/api";
+import { recommendationApi, resumeApi } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
+import { Match } from "@/lib/types";
 
 export default function Dashboard() {
   const [resumesLoading, setResumesLoading] = useState(false);
   const { resumes, setResumes } = useAppStore();
+  const [history, setHistory] = useState<Match[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   const fetchResumes = async () => {
     setResumesLoading(true);
     const { data, error } = await resumeApi.getAll();
     if (data && !error) {
-      console.log(data);
       setResumes(data);
     }
     setResumesLoading(false);
+  };
+
+  const loadMatchHistory = async () => {
+    try {
+      const data = await recommendationApi.getHistory();
+      setHistory(data.data || []);
+    } catch (error) {
+      console.error("Failed to load history:", error);
+      toast.error("Error", {
+        description: "Failed to load match history",
+      });
+    } finally {
+      setIsLoadingHistory(false);
+    }
   };
 
   // Get resumes if not already set in store
@@ -41,18 +57,7 @@ export default function Dashboard() {
 
   // Get matches
   useEffect(() => {
-    const fetchMatches = async () => {
-      // if (matches.length === 0) {
-      //   setLoading(true);
-      //   const { data, error } = await recommendationApi.getHistory();
-      //   if (data && !error) {
-      //     setMatches(data);
-      //   }
-      //   setLoading(false);
-      // }
-    };
-
-    fetchMatches();
+    loadMatchHistory();
   }, []);
 
   const handleUploadComplete = () => {
@@ -114,7 +119,7 @@ export default function Dashboard() {
 
         <MetricCard
           title="Matches Run"
-          value={7}
+          value={history.length}
           icon={<Activity className="h-4 w-4" />}
           variant="purple"
         />
@@ -148,12 +153,12 @@ export default function Dashboard() {
             Match History
           </h2>
           <div className="space-y-3">
-            {/* <MatchCardList
-              matches={mockMatchResults}
+            <MatchCardList
+              matches={history}
               isLoading={false}
               href="/dashboard/match"
               onCardClick={(match) => console.log(match)}
-            /> */}
+            />
           </div>
         </div>
 

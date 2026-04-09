@@ -97,7 +97,9 @@ export function MatchCard({
           {/* Right section */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex flex-col items-end gap-1">
-              {/* <ScoreBadge score={match.matchedResumes} /> */}
+              <ScoreBadge
+                score={Math.round(match.matchedResumes[0].similarity * 100)}
+              />
               <div className="text-[10px] text-muted-foreground uppercase tracking-wider font-mono">
                 Confidence
               </div>
@@ -116,6 +118,12 @@ export function MatchCard({
   );
 
   return (
-    <div>{href ? <Link href={href}>{cardContent}</Link> : cardContent}</div>
+    <div>
+      {href ? (
+        <Link href={`${href}/results/${match.id}`}>{cardContent}</Link>
+      ) : (
+        cardContent
+      )}
+    </div>
   );
 }

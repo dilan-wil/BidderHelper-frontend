@@ -12,14 +12,29 @@ import {
   Terminal,
   FileCode2,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
+import { Match } from "@/lib/types";
+import { recommendationApi } from "@/lib/api";
 
 export default function MatchResult() {
-  const result = mockMatchResults[0];
-  const bestResume = mockResumes.find((r) => r.id === result.bestResumeId);
+  const params = useParams();
+  const matchId = params.id as string;
+  const [match, setMatch] = useState<Match | null>(null);
+
+  useEffect(() => {
+    const getResume = async () => {
+      const { data, error } = await recommendationApi.getMatchById(matchId);
+      if (data && !error) {
+        setMatch(data);
+      }
+    };
+    getResume();
+  }, []);
+  const bestResume = match?.matchedResumes[0];
 
   const [generatingLetter, setGeneratingLetter] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
@@ -60,10 +75,10 @@ export default function MatchResult() {
             </span>
           </div>
           <h2 className="text-3xl font-bold tracking-tight text-white">
-            {result.jobTitle}
+            {match.jobTitle}
           </h2>
           <p className="text-primary font-mono text-sm bg-primary/10 w-fit px-2 py-0.5 rounded border border-primary/20">
-            {result.company}
+            {/* {result.company} */}
           </p>
         </div>
         <Button
@@ -71,7 +86,7 @@ export default function MatchResult() {
           className="border-white/10 hover:bg-white/5 text-white"
           asChild
         >
-          <Link href="/match">
+          <Link href="/dashboard/match">
             <ArrowLeft className="mr-2 h-4 w-4" /> New Execution
           </Link>
         </Button>
@@ -111,7 +126,9 @@ export default function MatchResult() {
                     strokeWidth="6"
                     fill="transparent"
                     strokeDasharray="283"
-                    strokeDashoffset={283 - (283 * result.score) / 100}
+                    strokeDashoffset={
+                      283 - (283 * bestResume.similarity * 100) / 100
+                    }
                     className="text-primary drop-shadow-[0_0_10px_rgba(0,217,255,0.8)]"
                     strokeLinecap="round"
                     style={{ transition: "stroke-dashoffset 1.5s ease-out" }}
@@ -119,7 +136,7 @@ export default function MatchResult() {
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="text-4xl font-black font-mono text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]">
-                    {result.score}%
+                    {Math.round(bestResume.similarity * 100)}%
                   </span>
                 </div>
               </div>
@@ -134,7 +151,7 @@ export default function MatchResult() {
                     High alignment detected across technical requirements.
                     Vector proximity strong for{" "}
                     <span className="text-white">
-                      {bestResume.skills.slice(0, 3).join(", ")}
+                      {/* {bestResume.skills.slice(0, 3).join(", ")} */}
                     </span>
                     .
                   </p>
@@ -179,32 +196,31 @@ export default function MatchResult() {
             Variant Ranking
           </h3>
           <div className="space-y-3 flex-1">
-            {result.matches.slice(1).map((match, i) => {
-              const res = mockResumes.find((r) => r.id === match.resumeId);
-              return res ? (
+            {match.matchedResumes.slice(1).map((m, i) => {
+              return (
                 <div
-                  key={res.id}
+                  key={i}
                   className="p-3 rounded-xl bg-black/40 border border-white/5 relative overflow-hidden group"
                 >
                   <div
                     className="absolute top-0 left-0 h-full bg-white/5"
-                    style={{ width: `${match.score}%` }}
+                    style={{ width: `${Math.round(m.similarity * 100)}%` }}
                   ></div>
                   <div className="relative z-10 flex items-center justify-between">
                     <div className="min-w-0 pr-4">
                       <p className="text-sm font-mono text-white truncate">
-                        {res.filename}
+                        {m.filename}
                       </p>
                       <p className="text-[10px] text-muted-foreground uppercase mt-1">
                         Rank 0{i + 2}
                       </p>
                     </div>
                     <div className="font-bold font-mono text-sm text-purple-400 shrink-0">
-                      {match.score}%
+                      {Math.round(m.similarity * 100)}%
                     </div>
                   </div>
                 </div>
-              ) : null;
+              );
             })}
           </div>
         </div>

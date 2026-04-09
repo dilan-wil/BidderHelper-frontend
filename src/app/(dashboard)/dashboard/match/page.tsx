@@ -43,9 +43,9 @@ export default function MatchJob() {
     setIsMatching(true);
     try {
       const result = await recommendationApi.matchWithText(jobDescription);
-      console.log(result)
+      console.log(result);
       // Navigate to results page with the match ID
-      // router.push(`/dashboard/match/result/${result.data?.id}`);
+      router.push(`/dashboard/match/results/${result.data?.id}`);
 
       toast.success("Success", {
         description: "Match analysis complete!",
