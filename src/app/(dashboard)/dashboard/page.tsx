@@ -76,9 +76,12 @@ export default function Dashboard() {
 
   // Flatten all matchedResumes from all matches, then find the highest similarity
   const allResumes = history.flatMap((match) => match.matchedResumes);
-  const bestResume = allResumes.reduce((best, current) =>
-    current.similarity > best.similarity ? current : best
-  );
+  const bestResume =
+    allResumes?.length > 0
+      ? allResumes.reduce((best, current) =>
+          current.similarity > best.similarity ? current : best
+        )
+      : null;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
@@ -155,7 +158,7 @@ export default function Dashboard() {
             className="text-sm font-bold font-mono text-white truncate mt-auto bg-white/5 px-2 py-1.5 rounded border border-white/5 inline-block w-fit max-w-full"
             title="Engineering_Manager.pdf"
           >
-            {bestResume.filename}
+            {bestResume?.filename}
           </div>
         </MetricCard>
       </div>
