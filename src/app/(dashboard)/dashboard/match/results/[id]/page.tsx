@@ -17,19 +17,21 @@ import { Textarea } from "@/components/ui/textarea";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
-import { Match } from "@/lib/types";
+import { CoverLetter, Match } from "@/lib/types";
 import { recommendationApi, coverLetterApi } from "@/lib/api";
 
 export default function MatchResult() {
   const params = useParams();
   const matchId = params.id as string;
   const [match, setMatch] = useState<Match | null>(null);
+  const [coverLetter, setCoverLetter] = useState<CoverLetter | null>(null);
   const [generatingLetter, setGeneratingLetter] = useState(false);
   const [showLetter, setShowLetter] = useState(false);
   const [letterContent, setLetterContent] = useState("");
   const [copied, setCopied] = useState(false);
   const [generatedCoverId, setGeneratedCoverId] = useState<string | null>(null);
 
+  // Get match details
   useEffect(() => {
     const getMatch = async () => {
       const { data, error } = await recommendationApi.getMatchById(matchId);
@@ -38,6 +40,33 @@ export default function MatchResult() {
       }
     };
     getMatch();
+  }, [matchId]);
+
+  // Check for existing cover letter for this match
+  useEffect(() => {
+    const checkExistingCoverLetter = async () => {
+      if (!matchId) return;
+
+      try {
+        // Fetch all cover letters and find if one exists for this match
+        const { data: coverLetters, error } = await coverLetterApi.getHistory();
+
+        if (coverLetters && !error) {
+          const existing = coverLetters.find((cl) => cl.matchId === matchId);
+
+          if (existing) {
+            setCoverLetter(existing);
+            setLetterContent(existing.content);
+            setGeneratedCoverId(existing.id);
+            setShowLetter(true);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check existing cover letter:", error);
+      }
+    };
+
+    checkExistingCoverLetter();
   }, [matchId]);
 
   const bestResume = match?.matchedResumes[0];
@@ -50,15 +79,18 @@ export default function MatchResult() {
     try {
       const result = await coverLetterApi.generate(
         bestResume.resumeId,
-        match.jobDescription,
+        match?.jobDescription?.slice(0, 500) || "",
         matchId
       );
 
-      setLetterContent(result.data?.content!);
-      setGeneratedCoverId(result.data!.id);
-      setShowLetter(true);
-
-      toast.success("Cover letter generated successfully!");
+      if (result.data) {
+        setLetterContent(result.data.coverLetter);
+        setGeneratedCoverId(result.data.id);
+        setShowLetter(true);
+        toast.success("Cover letter generated successfully!");
+      } else {
+        toast.error(result.error || "Failed to generate cover letter");
+      }
     } catch (error) {
       console.error("Failed to generate cover letter:", error);
       toast.error("Failed to generate cover letter");
@@ -75,26 +107,12 @@ export default function MatchResult() {
   };
 
   const handleDownload = () => {
-    if (!letterContent) return;
-
-    const blob = new Blob([letterContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `cover_letter_${bestResume?.filename.replace(
-      /\.[^/.]+$/,
-      ""
-    )}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    window.open(bestResume?.fileUrl, "_blank");
     toast.success("Downloaded successfully!");
   };
 
   const handleRegenerate = async () => {
     if (!generatedCoverId) {
-      // If no existing cover letter, generate new one
       await handleGenerateLetter();
       return;
     }
@@ -103,8 +121,12 @@ export default function MatchResult() {
 
     try {
       const result = await coverLetterApi.regenerate(generatedCoverId);
-      setLetterContent(result.data!.content);
-      toast.success("Cover letter regenerated!");
+      if (result.data) {
+        setLetterContent(result.data.content);
+        toast.success("Cover letter regenerated!");
+      } else {
+        toast.error(result.error || "Failed to regenerate cover letter");
+      }
     } catch (error) {
       console.error("Failed to regenerate:", error);
       toast.error("Failed to regenerate cover letter");
@@ -222,8 +244,10 @@ export default function MatchResult() {
                     <Download className="mr-2 h-4 w-4" /> Fetch PDF
                   </Button>
                   <Button
-                    onClick={handleGenerateLetter}
-                    disabled={generatingLetter || showLetter}
+                    onClick={
+                      showLetter ? handleRegenerate : handleGenerateLetter
+                    }
+                    disabled={generatingLetter}
                     className="flex-1 h-11 font-semibold glow-btn bg-primary text-primary-foreground border-none"
                   >
                     {generatingLetter ? (
@@ -233,7 +257,7 @@ export default function MatchResult() {
                       </>
                     ) : showLetter ? (
                       <>
-                        <Check className="mr-2 h-4 w-4" /> Synthesized
+                        <Terminal className="mr-2 h-4 w-4" /> Regenerate
                       </>
                     ) : (
                       <>
@@ -314,13 +338,13 @@ export default function MatchResult() {
                   )}
                   {copied ? "Copied" : "Copy"}
                 </Button>
-                <Button
+                {/* <Button
                   size="sm"
                   onClick={handleDownload}
                   className="flex-1 sm:flex-none h-9 bg-white text-black hover:bg-white/90"
                 >
                   <Download className="mr-2 h-4 w-4" /> Save
-                </Button>
+                </Button> */}
               </div>
             </div>
             <div className="p-6">
