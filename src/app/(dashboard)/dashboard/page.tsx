@@ -66,6 +66,20 @@ export default function Dashboard() {
     });
   };
 
+  const greatestSimilarity = Math.round(
+    Math.max(
+      ...history.flatMap((match) =>
+        match.matchedResumes.map((resume) => resume.similarity)
+      )
+    ) * 100
+  );
+
+  // Flatten all matchedResumes from all matches, then find the highest similarity
+  const allResumes = history.flatMap((match) => match.matchedResumes);
+  const bestResume = allResumes.reduce((best, current) =>
+    current.similarity > best.similarity ? current : best
+  );
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Actions Bar */}
@@ -126,7 +140,7 @@ export default function Dashboard() {
 
         <MetricCard
           title="Peak Score"
-          value="96%"
+          value={greatestSimilarity}
           icon={<Target className="h-4 w-4" />}
           variant="highlight"
         />
@@ -141,7 +155,7 @@ export default function Dashboard() {
             className="text-sm font-bold font-mono text-white truncate mt-auto bg-white/5 px-2 py-1.5 rounded border border-white/5 inline-block w-fit max-w-full"
             title="Engineering_Manager.pdf"
           >
-            Eng_Manager.pdf
+            {bestResume.filename}
           </div>
         </MetricCard>
       </div>
@@ -155,7 +169,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             <MatchCardList
               matches={history}
-              isLoading={false}
+              isLoading={isLoadingHistory}
               href="/dashboard/match"
               onCardClick={(match) => console.log(match)}
             />

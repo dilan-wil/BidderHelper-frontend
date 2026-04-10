@@ -43,7 +43,6 @@ export default function MatchJob() {
     setIsMatching(true);
     try {
       const result = await recommendationApi.matchWithText(jobDescription);
-      console.log(result);
       // Navigate to results page with the match ID
       router.push(`/dashboard/match/results/${result.data?.id}`);
 
@@ -64,7 +63,7 @@ export default function MatchJob() {
   };
 
   const handleCardClick = (match: Match) => {
-    router.push(`/dashboard/match/${match.id}`);
+    router.push(`/dashboard/match/results/${match.id}`);
   };
 
   return (

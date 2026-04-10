@@ -165,7 +165,13 @@ export const coverLetterApi = {
     jobDescription: string,
     matchId?: string
   ) => {
-    return request<CoverLetter>("/covers/generate", {
+    return request<{
+      id: string;
+      coverLetter: string;
+      resumeId: string;
+      matchId: string;
+      createdAt: Date;
+    }>("/covers/generate", {
       method: "POST",
       body: JSON.stringify({ resumeId, jobDescription, matchId }),
     });

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { ResumeCard } from "@/components/dashboard/resume/resume-card";
 import { resumeApi } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
+import { ResumeCardSkeleton } from "@/components/skeletons/resume-card-skeleton";
 
 export default function Resumes() {
   const [resumesLoading, setResumesLoading] = useState(false);
@@ -54,7 +55,15 @@ export default function Resumes() {
         </UploadModal>
       </div>
 
-      {resumes.length === 0 ? (
+      {resumesLoading ? (
+        // Show skeletons while loading
+        <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ResumeCardSkeleton key={i} />
+          ))}
+        </div>
+      ) : resumes.length === 0 ? (
+        // Show empty state when no resumes
         <div className="flex flex-col items-center justify-center p-16 text-center border rounded-2xl bg-card/20 border-white/10 border-dashed">
           <div className="h-16 w-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 border border-white/10 shadow-inner">
             <FileText className="h-8 w-8 text-muted-foreground" />
@@ -73,6 +82,7 @@ export default function Resumes() {
           </UploadModal>
         </div>
       ) : (
+        // Show resumes
         <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
           {resumes.map((resume) => (
             <ResumeCard

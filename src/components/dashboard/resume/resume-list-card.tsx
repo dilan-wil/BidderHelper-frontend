@@ -33,7 +33,7 @@ export function ResumeListCard({ resume }: ResumeCardProps) {
         className="h-8 w-8 text-muted-foreground hover:text-white"
         asChild
       >
-        <Link href={`/resumes/${resume.id}`}>
+        <Link href={`/dashboard/resumes/${resume.id}`}>
           <ArrowRight className="h-4 w-4" />
         </Link>
       </Button>
