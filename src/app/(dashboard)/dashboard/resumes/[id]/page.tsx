@@ -18,21 +18,29 @@ import { Resume } from "@/lib/types";
 import { resumeApi } from "@/lib/api";
 import { format } from "date-fns";
 import { formatFileSize } from "@/lib/format-file-size";
+import { ResumeDetailSkeleton } from "@/components/skeletons/resume-details-skeleton";
 
 export default function ResumeDetail() {
   const params = useParams();
   const resumeId = params.id as string;
   const [resume, setResume] = useState<Resume | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getResume = async () => {
+      setLoading(true);
       const { data, error } = await resumeApi.getById(resumeId);
       if (data && !error) {
         setResume(data);
       }
+      setLoading(false);
     };
     getResume();
   }, []);
+
+  if (loading) {
+    return <ResumeDetailSkeleton />;
+  }
 
   if (!resume) {
     return (
